@@ -48,10 +48,14 @@ jobs:
             --configuration modern-il2cpp `
             /p:BepInExDir=${{ github.workspace }}\bepinex_dist
 
+      - name: Find build output
+        shell: pwsh
+        run: Get-ChildItem -Recurse -Filter "*.dll" | Where-Object { $_.FullName -notlike "*\obj\*" } | Select-Object FullName
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: uuvr-il2cpp-modern
           path: |
-            **/bin/modern-il2cpp/**
+            **/bin/**/*.dll
           if-no-files-found: error
