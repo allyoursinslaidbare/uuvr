@@ -38,6 +38,9 @@ jobs:
         run: |
           Expand-Archive bepinex.zip -DestinationPath ${{ github.workspace }}\bepinex_dist
 
+      - name: Add BepInEx NuGet feed
+        run: dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx
+
       - name: Build (modern-il2cpp)
         shell: pwsh
         run: |
