@@ -26,9 +26,10 @@ jobs:
         shell: pwsh
         run: |
           $response = Invoke-RestMethod "https://builds.bepinex.dev/projects/bepinex_be"
-          # Grab the latest build number from the page
-          $latestZip = ($response -split "`n" | Select-String "BepInEx-Unity.IL2CPP-win-x64.*\.zip" | Select-Object -First 1).ToString().Trim()
-          $url = "https://builds.bepinex.dev/projects/bepinex_be/$latestZip"
+          # Extract just the filename from the href attribute
+          $match = [regex]::Match($response, 'href="/projects/bepinex_be/\d+/(BepInEx-Unity\.IL2CPP-win-x64[^"]+\.zip)"')
+          $filename = $match.Groups[1].Value
+          $url = "https://builds.bepinex.dev/projects/bepinex_be/$filename"
           Write-Host "Downloading: $url"
           Invoke-WebRequest $url -OutFile bepinex.zip
 
