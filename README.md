@@ -4,6 +4,8 @@
 
 Use [Rai Pal](https://pal.raicuparta.com) to install this mod.
 
+Disclaimer: the build.yml is vibecoded using the free version of Claude's Sonnet 4.6
+
 ## License
 
     Rai Pal
