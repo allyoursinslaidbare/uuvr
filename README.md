@@ -4,7 +4,7 @@
 
 Use [Rai Pal](https://pal.raicuparta.com) to install this mod.
 
-Disclaimer: the build.yml is vibecoded using the free version of Claude's Sonnet 4.6
+Disclaimer: the build.yml (in the il2cpp-modern branch) of this fork is vibecoded using the free version of Claude's Sonnet 4.6
 
 ## License
 
