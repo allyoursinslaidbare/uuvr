@@ -7,40 +7,34 @@ on:
   pull_request:
     branches:
       - il2cpp-modern
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     name: Build UUVR
-    # Windows is highly recommended for building Unity/BepInEx mods due to framework targeting
     runs-on: windows-latest 
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: il2cpp-modern
-          # Many Unity modding repos use submodules for dependencies (like Il2CppInterop)
+          # Automatically checks out the branch that triggered the workflow
           submodules: recursive 
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          # Targets .NET 6.0, the standard for modern BepInEx 6+ / IL2CPP modding
           dotnet-version: '6.0.x' 
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      # Fix for NU1101: Tell .NET where to find BepInEx packages
+      - name: Add BepInEx NuGet Source
+        run: dotnet nuget add source https://nuget.bepinex.dev/v3/index.json -n BepInEx
 
       - name: Restore NuGet Packages
         run: dotnet restore UnityUniversalVr.sln
 
       - name: Build Solution (Release)
         run: dotnet build UnityUniversalVr.sln --configuration Release --no-restore
-
-      # Fallback build command if the project specifically requires legacy MSBuild:
-      # run: msbuild UnityUniversalVr.sln /p:Configuration=Release /restore
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
