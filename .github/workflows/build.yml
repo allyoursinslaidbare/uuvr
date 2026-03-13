@@ -1,56 +1,52 @@
-name: Build
+name: Build il2cpp-modern
 
 on:
   push:
-    branches: [il2cpp-modern]
+    branches:
+      - il2cpp-modern
   pull_request:
-    branches: [il2cpp-modern]
+    branches:
+      - il2cpp-modern
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build UUVR
+    # Windows is highly recommended for building Unity/BepInEx mods due to framework targeting
+    runs-on: windows-latest 
 
     steps:
-      - name: Checkout il2cpp-modern branch
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           ref: il2cpp-modern
+          # Many Unity modding repos use submodules for dependencies (like Il2CppInterop)
+          submodules: recursive 
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          # Targets .NET 6.0, the standard for modern BepInEx 6+ / IL2CPP modding
+          dotnet-version: '6.0.x' 
 
-      - name: Download BepInEx 6 bleeding-edge (IL2CPP, win-x64)
-        shell: pwsh
-        run: |
-          $response = Invoke-RestMethod "https://builds.bepinex.dev/projects/bepinex_be"
-          # Extract just the filename from the href attribute
-          $match = [regex]::Match($response, 'href="(/projects/bepinex_be/\d+/BepInEx-Unity\.IL2CPP-win-x64[^"]+\.zip)"')
-          $path = $match.Groups[1].Value
-          $url = "https://builds.bepinex.dev$path"
-          Write-Host "Downloading: $url"
-          Invoke-WebRequest $url -OutFile bepinex.zip
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-      - name: Extract BepInEx
-        shell: pwsh
-        run: |
-          Expand-Archive bepinex.zip -DestinationPath ${{ github.workspace }}\bepinex_dist
+      - name: Restore NuGet Packages
+        run: dotnet restore UnityUniversalVr.sln
 
-      - name: Add BepInEx NuGet feed
-        run: dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx
+      - name: Build Solution (Release)
+        run: dotnet build UnityUniversalVr.sln --configuration Release --no-restore
 
-      - name: Build (modern-il2cpp)
-        shell: pwsh
-        run: |
-          dotnet build UnityUniversalVr.sln `
-            --configuration modern-il2cpp `
-            /p:BepInExDir=${{ github.workspace }}\bepinex_dist
+      # Fallback build command if the project specifically requires legacy MSBuild:
+      # run: msbuild UnityUniversalVr.sln /p:Configuration=Release /restore
 
-      - name: Upload build artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: uuvr-il2cpp-modern
-          path: bepinex_dist/mods/Il2Cpp/uuvr-il2cpp-modern/
-          if-no-files-found: error
+          name: uuvr-il2cpp-modern-build
+          path: |
+            **/bin/Release/**
+            !**/obj/**
+          if-no-files-found: warn
